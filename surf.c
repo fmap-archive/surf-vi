@@ -1188,10 +1188,8 @@ updatewinid(Client *c) {
 
 static void
 usage(void) {
-	die("usage: %s [-fFiIkKnNpPsSvx]"
-		" [-a cookiepolicies ] "
-		" [-c cookiefile] [-e xid] [-r scriptfile]"
-		" [-u useragent] [-z zoomlevel]"
+	die("usage: %s"
+		" [-c cookiefile][-u useragent] [-z zoomlevel]"
 		" [uri]\n", basename(argv0));
 }
 
@@ -1226,62 +1224,11 @@ main(int argc, char *argv[]) {
 
 	/* command line args */
 	ARGBEGIN {
-	case 'a':
-		cookiepolicies = EARGF(usage());
-		break;
 	case 'c':
 		cookiefile = EARGF(usage());
 		break;
-	case 'e':
-		embed = strtol(EARGF(usage()), NULL, 0);
-		break;
-	case 'f':
-		runinfullscreen = 1;
-		break;
-	case 'F':
-		runinfullscreen = 0;
-		break;
-	case 'i':
-		loadimages = 0;
-		break;
-	case 'I':
-		loadimages = 1;
-		break;
-	case 'k':
-		kioskmode = 0;
-		break;
-	case 'K':
-		kioskmode = 1;
-		break;
-	case 'n':
-		enableinspector = 0;
-		break;
-	case 'N':
-		enableinspector = 1;
-		break;
-	case 'p':
-		enableplugins = 0;
-		break;
-	case 'P':
-		enableplugins = 1;
-		break;
-	case 'r':
-		scriptfile = EARGF(usage());
-		break;
-	case 's':
-		enablescripts = 0;
-		break;
-	case 'S':
-		enablescripts = 1;
-		break;
 	case 'u':
 		useragent = EARGF(usage());
-		break;
-	case 'v':
-		die("surf-"VERSION", ©2009-2014 surf engineers, "
-				"see LICENSE for details\n");
-	case 'x':
-		showxid = TRUE;
 		break;
 	case 'z':
 		zoomlevel = strtof(EARGF(usage()), NULL);
