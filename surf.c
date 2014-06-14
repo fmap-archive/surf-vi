@@ -78,8 +78,6 @@ static GdkNativeWindow embed = 0;
 static gboolean showxid = FALSE;
 static char winid[64];
 static gboolean usingproxy = 0;
-static char togglestat[8];
-static char pagestat[3];
 static GTlsDatabase *tlsdb;
 static int policysel = 0;
 
@@ -124,8 +122,6 @@ static void fullscreen(Client *c, const Arg *arg);
 static void geopolicyrequested(WebKitWebView *v, WebKitWebFrame *f,
 		WebKitGeolocationPolicyDecision *d, Client *c);
 static const char *getatom(Client *c, int a);
-static void gettogglestat(Client *c);
-static void getpagestat(Client *c);
 static char *geturi(Client *c);
 static gboolean initdownload(WebKitWebView *v, WebKitDownload *o, Client *c);
 
@@ -1287,70 +1283,20 @@ togglestyle(Client *c, const Arg *arg) {
 }
 
 static void
-gettogglestat(Client *c){
-	gboolean value;
-	char *uri;
-	int p = 0;
-	WebKitWebSettings *settings = webkit_web_view_get_settings(c->view);
-
-	togglestat[p++] = cookiepolicy_set(cookiepolicy_get());
-
-	g_object_get(G_OBJECT(settings), "enable-caret-browsing",
-			&value, NULL);
-	togglestat[p++] = value? 'C': 'c';
-
-	togglestat[p++] = allowgeolocation? 'G': 'g';
-
-	g_object_get(G_OBJECT(settings), "auto-load-images", &value, NULL);
-	togglestat[p++] = value? 'I': 'i';
-
-	g_object_get(G_OBJECT(settings), "enable-scripts", &value, NULL);
-	togglestat[p++] = value? 'S': 's';
-
-	g_object_get(G_OBJECT(settings), "enable-plugins", &value, NULL);
-	togglestat[p++] = value? 'V': 'v';
-
-	g_object_get(G_OBJECT(settings), "user-stylesheet-uri", &uri, NULL);
-	togglestat[p++] = uri[0] ? 'M': 'm';
-
-	togglestat[p] = '\0';
-}
-
-static void
-getpagestat(Client *c) {
-	const char *uri = geturi(c);
-
-	if(strstr(uri, "https://") == uri) {
-		pagestat[0] = c->sslfailed ? 'U' : 'T';
-	} else {
-		pagestat[0] = '-';
-	}
-
-	pagestat[1] = usingproxy ? 'P' : '-';
-	pagestat[2] = '\0';
-
-}
-
-static void
 updatetitle(Client *c) {
 	char *t;
 
 	if(showindicators) {
-		gettogglestat(c);
-		getpagestat(c);
-
 		if(c->linkhover) {
-			t = g_strdup_printf("%s:%s | %s", togglestat,
-					pagestat, c->linkhover);
+      t = g_strdup_printf("%s", c->linkhover);
 		} else if(c->progress != 100) {
-			t = g_strdup_printf("[%i%%] %s:%s | %s", c->progress,
-					togglestat, pagestat,
-					(c->title == NULL)? "" : c->title);
+			t = g_strdup_printf("%s [%i%%]", 
+			  (c->title==NULL)?"":c->title,
+			  c->progress);
 		} else {
-			t = g_strdup_printf("%s:%s | %s", togglestat, pagestat,
-					(c->title == NULL)? "" : c->title);
+			t = g_strdup_printf("%s",
+			  (c->title == NULL)? "" : c->title);
 		}
-
 		gtk_window_set_title(GTK_WINDOW(c->win), t);
 		g_free(t);
 	} else {
