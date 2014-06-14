@@ -254,7 +254,7 @@ cleanup(void) {
 	while(clients)
 		destroyclient(clients);
 	g_free(cookiefile);
-	g_free(scriptfile);
+	g_free(scriptdir);
 	g_free(stylefile);
 	g_free(historyfile);
 }
@@ -343,10 +343,14 @@ static void
 runscript(WebKitWebFrame *frame) {
 	char *script;
 	GError *error;
+	GDir* dir = g_dir_open(scriptdir, 0, &error);
+	const gchar* file = NULL;
 
-	if(g_file_get_contents(scriptfile, &script, NULL, &error)) {
-		evalscript(webkit_web_frame_get_global_context(frame),
-				script, scriptfile);
+	while ((file=g_dir_read_name(dir))) { 
+	  gchar* path = g_build_filename(scriptdir, file, NULL);
+	  if (g_file_get_contents(path, &script, NULL, &error))
+		  evalscript(webkit_web_frame_get_global_context(frame), script, path);
+    g_free (path);
 	}
 }
 
@@ -1085,9 +1089,9 @@ setup(void) {
 
 	/* dirs and files */
 	cookiefile = buildpath(cookiefile);
-	scriptfile = buildpath(scriptfile);
 	stylefile = buildpath(stylefile);
 	historyfile = buildpath(historyfile);
+	scriptdir = buildpath(scriptdir);
 
 	/* request handler */
 	s = webkit_get_default_session();

@@ -2,9 +2,9 @@
 static char *useragent      = "Mozilla/5.0 (X11; U; Unix; en-US) "
 	"AppleWebKit/537.15 (KHTML, like Gecko) Chrome/24.0.1295.0 "
 	"Safari/537.15 Surf/"VERSION;
-static char *stylefile      = "~/.surf/style.css";
-static char *scriptfile     = "~/.surf/script.js";
-static char *historyfile    = "~/.surf/history.txt";
+static char *stylefile   = "~/.surf/style.css";
+static char *scriptdir   = "~/.surf/script/";
+static char *historyfile = "~/.surf/history.txt";
 
 static Bool kioskmode       = FALSE; /* Ignore shortcuts */
 static Bool showindicators  = TRUE;  /* Show indicators in window title */
