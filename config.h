@@ -90,14 +90,5 @@ static Key keys[] = {
 
     { MODKEY,               GDK_n,      find,       { .b = TRUE } },
     { MODKEY|GDK_SHIFT_MASK,GDK_n,      find,       { .b = FALSE } },
-
-    { MODKEY|GDK_SHIFT_MASK,GDK_c,      toggle,     { .v = "enable-caret-browsing" } },
-    { MODKEY|GDK_SHIFT_MASK,GDK_i,      toggle,     { .v = "auto-load-images" } },
-    { MODKEY|GDK_SHIFT_MASK,GDK_s,      toggle,     { .v = "enable-scripts" } },
-    { MODKEY|GDK_SHIFT_MASK,GDK_v,      toggle,     { .v = "enable-plugins" } },
-    { MODKEY|GDK_SHIFT_MASK,GDK_a,      togglecookiepolicy, { 0 } },
-    { MODKEY|GDK_SHIFT_MASK,GDK_m,      togglestyle, { 0 } },
-    { MODKEY|GDK_SHIFT_MASK,GDK_b,      togglescrollbars, { 0 } },
-    { MODKEY|GDK_SHIFT_MASK,GDK_g,      togglegeolocation, { 0 } },
 };
 

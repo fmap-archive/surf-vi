@@ -100,7 +100,6 @@ static SoupCookieJar *cookiejar_new(const char *filename, gboolean read_only,
 		SoupCookieJarAcceptPolicy policy);
 static void cookiejar_set_property(GObject *self, guint prop_id,
 		const GValue *value, GParamSpec *pspec);
-static char cookiepolicy_set(const SoupCookieJarAcceptPolicy p);
 
 static char *copystr(char **str, const char *src);
 static WebKitWebView *createwindow(WebKitWebView *v, WebKitWebFrame *f,
@@ -116,7 +115,6 @@ static gboolean deletion_interface(WebKitWebView *view,
 static void destroyclient(Client *c);
 static void destroywin(GtkWidget* w, Client *c);
 static void die(const char *errstr, ...);
-static void eval(Client *c, const Arg *arg);
 static void find(Client *c, const Arg *arg);
 static void fullscreen(Client *c, const Arg *arg);
 static void geopolicyrequested(WebKitWebView *v, WebKitWebFrame *f,
@@ -162,11 +160,6 @@ static void source(Client *c, const Arg *arg);
 static void spawn(Client *c, const Arg *arg);
 static void stop(Client *c, const Arg *arg);
 static void titlechange(WebKitWebView *view, GParamSpec *pspec, Client *c);
-static void toggle(Client *c, const Arg *arg);
-static void togglecookiepolicy(Client *c, const Arg *arg);
-static void togglegeolocation(Client *c, const Arg *arg);
-static void togglescrollbars(Client *c, const Arg *arg);
-static void togglestyle(Client *c, const Arg *arg);
 static void updatetitle(Client *c);
 static void updatewinid(Client *c);
 static void usage(void);
@@ -328,21 +321,6 @@ cookiepolicy_get(void) {
 	}
 
 	return SOUP_COOKIE_JAR_ACCEPT_ALWAYS;
-}
-
-static char
-cookiepolicy_set(const SoupCookieJarAcceptPolicy ep) {
-	switch(ep) {
-	case SOUP_COOKIE_JAR_ACCEPT_NEVER:
-		return 'a';
-	case SOUP_COOKIE_JAR_ACCEPT_NO_THIRD_PARTY:
-		return '@';
-	case SOUP_COOKIE_JAR_ACCEPT_ALWAYS:
-	default:
-		break;
-	}
-
-	return 'A';
 }
 
 static void
@@ -1166,13 +1144,6 @@ spawn(Client *c, const Arg *arg) {
 }
 
 static void
-eval(Client *c, const Arg *arg) {
-	WebKitWebFrame *frame = webkit_web_view_get_main_frame(c->view);
-	evalscript(webkit_web_frame_get_global_context(frame),
-			((char **)arg->v)[0], "");
-}
-
-static void
 stop(Client *c, const Arg *arg) {
 	webkit_web_view_stop_loading(c->view);
 }
@@ -1184,102 +1155,6 @@ titlechange(WebKitWebView *view, GParamSpec *pspec, Client *c) {
 		c->title = copystr(&c->title, t);
 		updatetitle(c);
 	}
-}
-
-static void
-toggle(Client *c, const Arg *arg) {
-	WebKitWebSettings *settings;
-	char *name = (char *)arg->v;
-	gboolean value;
-	Arg a = { .b = FALSE };
-
-	settings = webkit_web_view_get_settings(c->view);
-	g_object_get(G_OBJECT(settings), name, &value, NULL);
-	g_object_set(G_OBJECT(settings), name, !value, NULL);
-
-	reload(c, &a);
-}
-
-static void
-togglecookiepolicy(Client *c, const Arg *arg) {
-	SoupCookieJar *jar;
-	SoupCookieJarAcceptPolicy policy;
-
-	jar = SOUP_COOKIE_JAR(
-			soup_session_get_feature(
-				webkit_get_default_session(),
-				SOUP_TYPE_COOKIE_JAR));
-	g_object_get(G_OBJECT(jar), "accept-policy", &policy, NULL);
-
-	policysel++;
-	if(policysel >= strlen(cookiepolicies))
-		policysel = 0;
-
-	g_object_set(G_OBJECT(jar), "accept-policy",
-			cookiepolicy_get(), NULL);
-
-	updatetitle(c);
-	/* Do not reload. */
-}
-
-static void
-togglegeolocation(Client *c, const Arg *arg) {
-	Arg a = { .b = FALSE };
-
-	allowgeolocation ^= 1;
-
-	reload(c, &a);
-}
-
-static void
-twitch(Client *c, const Arg *arg) {
-	GtkAdjustment *a;
-	gdouble v;
-
-	a = gtk_scrolled_window_get_vadjustment(
-			GTK_SCROLLED_WINDOW(c->scroll));
-
-	v = gtk_adjustment_get_value(a);
-
-	v += arg->i;
-
-	v = MAX(v, 0.0);
-	v = MIN(v, gtk_adjustment_get_upper(a) -
-			gtk_adjustment_get_page_size(a));
-	gtk_adjustment_set_value(a, v);
-}
-
-static void
-togglescrollbars(Client *c, const Arg *arg) {
-	GtkPolicyType vspolicy;
-	Arg a;
-
-	gtk_scrolled_window_get_policy(GTK_SCROLLED_WINDOW(c->scroll), NULL, &vspolicy);
-
-	if(vspolicy == GTK_POLICY_AUTOMATIC) {
-		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(c->scroll),
-				GTK_POLICY_NEVER, GTK_POLICY_NEVER);
-	} else {
-		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(c->scroll),
-				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-		a.i = +1;
-		twitch(c, &a);
-		a.i = -1;
-		twitch(c, &a);
-	}
-}
-
-static void
-togglestyle(Client *c, const Arg *arg) {
-	WebKitWebSettings *settings;
-	char *uri;
-
-	settings = webkit_web_view_get_settings(c->view);
-	g_object_get(G_OBJECT(settings), "user-stylesheet-uri", &uri, NULL);
-	uri = uri[0] ? g_strdup("") : g_strconcat("file://", stylefile, NULL);
-	g_object_set(G_OBJECT(settings), "user-stylesheet-uri", uri, NULL);
-
-	updatetitle(c);
 }
 
 static void
@@ -1313,10 +1188,10 @@ updatewinid(Client *c) {
 
 static void
 usage(void) {
-	die("usage: %s [-bBfFgGiIkKnNpPsSvx]"
+	die("usage: %s [-fFiIkKnNpPsSvx]"
 		" [-a cookiepolicies ] "
 		" [-c cookiefile] [-e xid] [-r scriptfile]"
-		" [-t stylefile] [-u useragent] [-z zoomlevel]"
+		" [-u useragent] [-z zoomlevel]"
 		" [uri]\n", basename(argv0));
 }
 
@@ -1354,12 +1229,6 @@ main(int argc, char *argv[]) {
 	case 'a':
 		cookiepolicies = EARGF(usage());
 		break;
-	case 'b':
-		enablescrollbars = 0;
-		break;
-	case 'B':
-		enablescrollbars = 1;
-		break;
 	case 'c':
 		cookiefile = EARGF(usage());
 		break;
@@ -1371,12 +1240,6 @@ main(int argc, char *argv[]) {
 		break;
 	case 'F':
 		runinfullscreen = 0;
-		break;
-	case 'g':
-		allowgeolocation = 0;
-		break;
-	case 'G':
-		allowgeolocation = 1;
 		break;
 	case 'i':
 		loadimages = 0;
@@ -1410,9 +1273,6 @@ main(int argc, char *argv[]) {
 		break;
 	case 'S':
 		enablescripts = 1;
-		break;
-	case 't':
-		stylefile = EARGF(usage());
 		break;
 	case 'u':
 		useragent = EARGF(usage());
