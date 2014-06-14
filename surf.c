@@ -23,6 +23,7 @@
 #include <sys/file.h>
 #include <libgen.h>
 #include <stdarg.h>
+#include <time.h>
 
 #include "arg.h"
 
@@ -166,6 +167,7 @@ static void usage(void);
 static void windowobjectcleared(GtkWidget *w, WebKitWebFrame *frame,
 		JSContextRef js, JSObjectRef win, Client *c);
 static void zoom(Client *c, const Arg *arg);
+static void updatehistory(const char *uri);
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -254,6 +256,7 @@ cleanup(void) {
 	g_free(cookiefile);
 	g_free(scriptfile);
 	g_free(stylefile);
+	g_free(historyfile);
 }
 
 static void
@@ -606,9 +609,10 @@ loadstatuschange(WebKitWebView *view, GParamSpec *pspec, Client *c) {
 	SoupMessage *msg;
 	char *uri;
 
+	uri = geturi(c);
+
 	switch(webkit_web_view_get_load_status (c->view)) {
 	case WEBKIT_LOAD_COMMITTED:
-		uri = geturi(c);
 		if(strstr(uri, "https://") == uri) {
 			frame = webkit_web_view_get_main_frame(c->view);
 			src = webkit_web_frame_get_data_source(frame);
@@ -622,6 +626,7 @@ loadstatuschange(WebKitWebView *view, GParamSpec *pspec, Client *c) {
 	case WEBKIT_LOAD_FINISHED:
 		c->progress = 100;
 		updatetitle(c);
+		updatehistory(uri);
 		break;
 	default:
 		break;
@@ -1082,6 +1087,7 @@ setup(void) {
 	cookiefile = buildpath(cookiefile);
 	scriptfile = buildpath(scriptfile);
 	stylefile = buildpath(stylefile);
+	historyfile = buildpath(historyfile);
 
 	/* request handler */
 	s = webkit_get_default_session();
@@ -1213,6 +1219,18 @@ zoom(Client *c, const Arg *arg) {
 		c->zoomed = FALSE;
 		webkit_web_view_set_zoom_level(c->view, 1.0);
 	}
+}
+
+static void 
+updatehistory(const char *uri) {
+  char epoch[11];
+  time_t now = time (0);
+  strftime(epoch, 11, "%s", localtime(&now));
+  
+  FILE *f;
+  f = fopen(historyfile, "a+");
+  fprintf(f, "%s,%s\n", epoch, uri);
+  fclose(f);
 }
 
 int
