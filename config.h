@@ -22,7 +22,7 @@ static char *strictssl      = FALSE; /* Refuse untrusted SSL connections */
 static time_t sessiontime   = 3600;
 
 /* Webkit default features */
-static Bool enablescrollbars = TRUE;
+static Bool enablescrollbars = FALSE;
 static Bool enablespatialbrowsing = TRUE;
 static Bool enableplugins = TRUE;
 static Bool enablescripts = TRUE;
