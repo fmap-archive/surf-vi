@@ -42,11 +42,10 @@ static Bool allowgeolocation = TRUE;
 /* DOWNLOAD(URI, referer) */
 #define DOWNLOAD(d, r) { \
 	.v = (char *[]){ "/bin/sh", "-c", \
-		"st -e /bin/sh -c \"curl -L -J -O --user-agent '$1'" \
-		" --referer '$2' -b $3 -c $3 '$0';" \
-		" sleep 5;\"", \
-		d, useragent, r, cookiefile, NULL \
-	} \
+	  "wget -P ~/tmp --load-cookies $3 --user-agent \"$1\" --referer \"$2\" \"$0\";" \
+	  "sleep 60", \
+	  d, useragent, r, cookiefile, NULL \
+  } \
 }
 
 #define MODKEY GDK_CONTROL_MASK
