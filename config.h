@@ -31,11 +31,11 @@ static Bool loadimages = TRUE;
 static Bool hidebackground  = FALSE;
 static Bool allowgeolocation = TRUE;
 
-#define SETPROP(p, q) { \
+#define SETPROP(p, q, r) { \
 	.v = (char *[]){ "/bin/sh", "-c", \
-		"prop=\"`xprop -id $2 $0 | cut -d '\"' -f 2 | xargs -0 printf %b | dmenu`\" &&" \
-		"xprop -id $2 -f $1 8s -set $1 \"$prop\"", \
-		p, q, winid, NULL \
+		"prop=\"`xprop -id $3 $0 | cut -d '\"' -f 2 | xargs -I_ zenity --entry --text=$2 --entry-text=_`\" && " \
+		"xprop -id $3 -f $1 8s -set $1 \"$prop\"", \
+		p, q, r, winid, NULL \
 	} \
 }
 
@@ -86,9 +86,8 @@ static Key keys[] = {
     { MODKEY,               GDK_o,      source,     { 0 } },
     { MODKEY|GDK_SHIFT_MASK,GDK_o,      inspector,  { 0 } },
 
-    { MODKEY,               GDK_g,      spawn,      SETPROP("_SURF_URI", "_SURF_GO") },
-    { MODKEY,               GDK_f,      spawn,      SETPROP("_SURF_FIND", "_SURF_FIND") },
-    { MODKEY,               GDK_slash,  spawn,      SETPROP("_SURF_FIND", "_SURF_FIND") },
+    { MODKEY,               GDK_g,      spawn,      SETPROP("_SURF_URI", "_SURF_GO", "open") },
+    { MODKEY,               GDK_slash,  spawn,      SETPROP("_SURF_FIND", "_SURF_FIND", "find") },
 
     { MODKEY,               GDK_n,      find,       { .b = TRUE } },
     { MODKEY|GDK_SHIFT_MASK,GDK_n,      find,       { .b = FALSE } },
